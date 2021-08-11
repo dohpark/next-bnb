@@ -5,8 +5,8 @@ import Link from "next/link";
 import useModal from "../hooks/useModal";
 import SignUpModal from "./auth/SignUpModal";
 import palette from "../styles/palette";
-import AirbnbLogoIcon from "../public/static/svg/logo.svg";
-import AirbnbLogoTextIcon from "../public/static/svg/logo_text.svg";
+import AirbnbLogoIcon from "../public/static/svg/logo/logo.svg";
+import AirbnbLogoTextIcon from "../public/static/svg/logo/logo_text.svg";
 
 const Container = styled.div`
   position: sticky;

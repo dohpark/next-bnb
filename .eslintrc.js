@@ -40,6 +40,7 @@ module.exports = {
     "jsx-a11y/label-has-associated-control": "off",
     "no-invalid-css": "off",
     "no-confusing-arrow": "off",
+    "no-undef": "off", // typescript has its own checks, may cause duplication so need to disable
     "react/jsx-curly-newline": "off",
     indent: "off",
     "react/jsx-filename-extension": [
