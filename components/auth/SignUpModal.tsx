@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { useDispatch } from "react-redux";
 import CloseXIcon from "../../public/static/svg/input/modal_close_x_icon.svg";
 import MailIcon from "../../public/static/svg/input/mail.svg";
 import PersonIcon from "../../public/static/svg/input/person.svg";
@@ -10,8 +11,10 @@ import Selector from "../common/Selector";
 import Button from "../common/Button";
 import { dayList, monthList, yearList } from "../../lib/staticData";
 import palette from "../../styles/palette";
+import { signupAPI } from "../../lib/api/auth";
+import { userActions } from "../../store/user";
 
-const Container = styled.div`
+const Container = styled.form`
   width: 568px;
   padding: 32px;
   background-color: white;
@@ -104,8 +107,31 @@ const SignUpModal: React.FC = () => {
     setBirthDay(event.target.value);
   };
 
+  const dispatch = useDispatch();
+
+  // 회원가입 폼 제출
+  const onSubmitSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    try {
+      const signUpBody = {
+        email,
+        lastname,
+        firstname,
+        password,
+        birthday: new Date(
+          `${birthYear}-${birthMonth!.replace("월", "")}=${birthDay}`
+        ).toISOString(),
+      };
+      const { data } = await signupAPI(signUpBody);
+      dispatch(userActions.setLoggedUser(data));
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
-    <Container>
+    <Container onSubmit={onSubmitSignUp}>
       <CloseXIcon className="modal-close-x-icon" />
       <div className="input-wrapper">
         <Input
