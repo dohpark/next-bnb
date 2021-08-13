@@ -1,12 +1,14 @@
-import { HYDRATE, createWrapper } from "next-redux-wrapper";
+import { HYDRATE, createWrapper, MakeStore } from "next-redux-wrapper";
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import {
   TypedUseSelectorHook,
   useSelector as useReduxSelector,
 } from "react-redux";
 import user from "./user";
+import common from "./common";
 
 const rootReducer = combineReducers({
+  common: common.reducer,
   user: user.reducer,
 });
 
@@ -31,7 +33,7 @@ const reducer = (state: any, action: any) => {
 //* 타입 지원되는 커스텀 useSelector 만들기
 export const useSelector: TypedUseSelectorHook<RootState> = useReduxSelector;
 
-const initStore = () => {
+const initStore: MakeStore<any> = () => {
   const store = configureStore({
     reducer,
     devTools: true,
