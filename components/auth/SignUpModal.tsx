@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import styled from "styled-components";
 import { useDispatch } from "react-redux";
 import CloseXIcon from "../../public/static/svg/input/modal_close_x_icon.svg";
@@ -15,6 +15,7 @@ import palette from "../../styles/palette";
 import { signupAPI } from "../../lib/api/auth";
 import { userActions } from "../../store/user";
 import useValidateMode from "../../hooks/useValidateMode";
+import PasswordWarning from "./PasswordWarning";
 
 const Container = styled.form`
   width: 568px;
@@ -72,9 +73,19 @@ const Container = styled.form`
     padding-bottom: 16px;
     border-bottom: 1px solid ${palette.gray_eb};
   }
+
+  .sign-up-modal-set-login {
+    color: ${palette.dark_cyan};
+    margin-left: 8px;
+    cursor: pointer;
+  }
 `;
 
-const SignUpModal: React.FC = () => {
+interface SignUpProps {
+  closeModal: () => void;
+}
+
+const SignUpModal: React.FC<SignUpProps> = ({ closeModal }) => {
   const [email, setEmail] = useState("");
   const [lastname, setLastname] = useState("");
   const [firstname, setFirstname] = useState("");
@@ -83,6 +94,8 @@ const SignUpModal: React.FC = () => {
   const [birthYear, setBirthYear] = useState<string | undefined>();
   const [birthMonth, setBirthMonth] = useState<string | undefined>();
   const [birthDay, setBirthDay] = useState<string | undefined>();
+
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const onChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -111,6 +124,65 @@ const SignUpModal: React.FC = () => {
 
   const dispatch = useDispatch();
   const { setValidateMode } = useValidateMode();
+  const onFocusPassword = () => {
+    setPasswordFocused(true);
+  };
+
+  // password가 이름이나 이메일을 포함하는지
+  const isPasswordHasNameOrEmail = useMemo(
+    () =>
+      !password ||
+      !firstname ||
+      password.includes(firstname) ||
+      password.includes(email.split("@")[0]),
+    [password, lastname, email]
+  );
+
+  // 비밀번호 최소자리수
+  const PASSWORD_MIN_LENGTH = 8;
+
+  const isPasswordOverMinLength = useMemo(
+    () => !!password && password.length >= PASSWORD_MIN_LENGTH,
+    [password]
+  );
+
+  // 비밀번호 숫자나 특수기호 포함하는지
+  const isPasswordHasNumberOrSymbol = useMemo(
+    () =>
+      !(
+        /[{}[\]/?.,;:|*~`!^-_+<>@#$%&\\=('")]/g.test(password) ||
+        /[0-9]/g.test(password)
+      ),
+    [password]
+  );
+
+  //회원가입 폼 입력 값 확인하기
+  const validateSignUpForm = () => {
+    // 인풋 값이 없을 시
+    if (!email || !lastname || !firstname || !password) {
+      return false;
+    }
+    // 비밀번호가 올바르지 않다면
+    if (
+      isPasswordHasNameOrEmail ||
+      isPasswordHasNumberOrSymbol ||
+      !isPasswordOverMinLength
+    ) {
+      return false;
+    }
+
+    // 생년월일 셀렉터 값이 없다면
+    if (!birthDay || !birthMonth || !birthYear) {
+      return false;
+    }
+    return true;
+  };
+
+  useEffect(() => {
+    return () => {
+      setValidateMode(false);
+    };
+  }, []);
 
   // 회원가입 폼 제출
   const onSubmitSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -118,30 +190,30 @@ const SignUpModal: React.FC = () => {
 
     setValidateMode(true);
 
-    if (!email || !lastname || !firstname || !password) {
-      return undefined;
-    }
+    if (validateSignUpForm()) {
+      try {
+        const signUpBody = {
+          email,
+          lastname,
+          firstname,
+          password,
+          birthday: new Date(
+            `${birthYear}-${birthMonth!.replace("월", "")}=${birthDay}`
+          ).toISOString(),
+        };
+        const { data } = await signupAPI(signUpBody);
+        dispatch(userActions.setLoggedUser(data));
 
-    try {
-      const signUpBody = {
-        email,
-        lastname,
-        firstname,
-        password,
-        birthday: new Date(
-          `${birthYear}-${birthMonth!.replace("월", "")}=${birthDay}`
-        ).toISOString(),
-      };
-      const { data } = await signupAPI(signUpBody);
-      dispatch(userActions.setLoggedUser(data));
-    } catch (e) {
-      console.log(e);
+        closeModal();
+      } catch (e) {
+        console.log(e);
+      }
     }
   };
 
   return (
     <Container onSubmit={onSubmitSignUp}>
-      <CloseXIcon className="modal-close-x-icon" />
+      <CloseXIcon className="modal-close-x-icon" onClick={closeModal} />
       <div className="input-wrapper">
         <Input
           placeholder="이메일 주소"
@@ -191,10 +263,32 @@ const SignUpModal: React.FC = () => {
           value={password}
           onChange={onChangePassword}
           useValidation
-          isValid={!!password}
+          isValid={
+            !isPasswordHasNameOrEmail &&
+            isPasswordOverMinLength &&
+            !isPasswordHasNumberOrSymbol
+          }
           errorMessage="비밀번호를 입력하세요."
+          onFocus={onFocusPassword}
         />
       </div>
+      {passwordFocused && (
+        <>
+          <PasswordWarning
+            isValid={isPasswordHasNameOrEmail}
+            text="비밀번호에 본인 이름이나 이메일 주소를 포함할 수 없습니다"
+          />
+          <PasswordWarning
+            isValid={!isPasswordOverMinLength}
+            text="최소 8글자"
+          />
+          <PasswordWarning
+            isValid={isPasswordHasNumberOrSymbol}
+            text="숫자나 기호를 포함하세요"
+          />
+        </>
+      )}
+
       <p className="sign-up-birthday-label">생일</p>
       <p className="sign-up-modal-birthday-info">
         만 18세 이상의 성인만 회원으로 가입할 수 있습니다. 생일은 다른
@@ -208,6 +302,7 @@ const SignUpModal: React.FC = () => {
             defaultValue="월"
             value={birthMonth}
             onChange={onChangeBirthMonth}
+            isValid={!!birthMonth}
           />
         </div>
         <div className="sign-up-modal-birthday-day-selector">
@@ -217,6 +312,7 @@ const SignUpModal: React.FC = () => {
             defaultValue="일"
             value={birthDay}
             onChange={onChangeBirthDay}
+            isValid={!!birthDay}
           />
         </div>
         <div className="sign-up-modal-birthday-year-selector">
@@ -226,12 +322,23 @@ const SignUpModal: React.FC = () => {
             defaultValue="년"
             value={birthYear}
             onChange={onChangeBirthYear}
+            isValid={!!birthYear}
           />
         </div>
       </div>
       <div className="sign-up-modal-submit-button-wrapper">
         <Button type="submit">가입하기</Button>
       </div>
+      <p>
+        이미 에어비앤비 계정이 있나요?
+        <span
+          className="sign-up-modal-set-login"
+          role="presentation"
+          onClick={() => {}}
+        >
+          로그인
+        </span>
+      </p>
     </Container>
   );
 };
