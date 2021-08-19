@@ -95,8 +95,12 @@ const SignUpModal: React.FC<SignUpProps> = ({ closeModal }) => {
   const [birthYear, setBirthYear] = useState<string | undefined>();
   const [birthMonth, setBirthMonth] = useState<string | undefined>();
   const [birthDay, setBirthDay] = useState<string | undefined>();
-
   const [passwordFocused, setPasswordFocused] = useState(false);
+
+  // 선택할 수 없는 월일년 options
+  const disableMonths = ["월"];
+  const disableDays = ["일"];
+  const disableYears = ["년"];
 
   const onChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -304,7 +308,7 @@ const SignUpModal: React.FC<SignUpProps> = ({ closeModal }) => {
         <div className="sign-up-modal-birthday-month-selector">
           <Selector
             options={monthList}
-            disabledOptions={["월"]}
+            disabledOptions={disableMonths}
             defaultValue="월"
             value={birthMonth}
             onChange={onChangeBirthMonth}
@@ -314,7 +318,7 @@ const SignUpModal: React.FC<SignUpProps> = ({ closeModal }) => {
         <div className="sign-up-modal-birthday-day-selector">
           <Selector
             options={dayList}
-            disabledOptions={["일"]}
+            disabledOptions={disableDays}
             defaultValue="일"
             value={birthDay}
             onChange={onChangeBirthDay}
@@ -324,7 +328,7 @@ const SignUpModal: React.FC<SignUpProps> = ({ closeModal }) => {
         <div className="sign-up-modal-birthday-year-selector">
           <Selector
             options={yearList}
-            disabledOptions={["년"]}
+            disabledOptions={disableYears}
             defaultValue="년"
             value={birthYear}
             onChange={onChangeBirthYear}

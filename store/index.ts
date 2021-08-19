@@ -1,6 +1,5 @@
 import { HYDRATE, createWrapper } from "next-redux-wrapper";
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import { Store } from "redux";
 import {
   TypedUseSelectorHook,
   useSelector as useReduxSelector,
@@ -45,4 +44,4 @@ const initStore = () => {
   return store;
 };
 
-export const wrapper = createWrapper<Store<RootState>>(initStore);
+export const wrapper = createWrapper(initStore);
