@@ -16,6 +16,7 @@ import { signupAPI } from "../../lib/api/auth";
 import { userActions } from "../../store/user";
 import useValidateMode from "../../hooks/useValidateMode";
 import PasswordWarning from "./PasswordWarning";
+import { authActions } from "../../store/auth";
 
 const Container = styled.form`
   width: 568px;
@@ -155,6 +156,11 @@ const SignUpModal: React.FC<SignUpProps> = ({ closeModal }) => {
       ),
     [password]
   );
+
+  // 로그인 모달로 변경하기
+  const changeToLoginModal = () => {
+    dispatch(authActions.setAuthMode("login"));
+  };
 
   //회원가입 폼 입력 값 확인하기
   const validateSignUpForm = () => {
@@ -334,7 +340,7 @@ const SignUpModal: React.FC<SignUpProps> = ({ closeModal }) => {
         <span
           className="sign-up-modal-set-login"
           role="presentation"
-          onClick={() => {}}
+          onClick={changeToLoginModal}
         >
           로그인
         </span>
