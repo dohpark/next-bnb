@@ -213,8 +213,7 @@ const SignUpModal: React.FC<SignUpProps> = ({ closeModal }) => {
         };
         const { data } = await signupAPI(signUpBody);
         dispatch(userActions.setLoggedUser(data));
-
-        closeModal();
+        setValidateMode(false);
       } catch (e) {
         console.log(e);
       }

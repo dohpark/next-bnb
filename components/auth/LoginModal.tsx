@@ -88,8 +88,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ closeModal }) => {
       try {
         const { data } = await loginAPI(loginBody);
         dispatch(userActions.setLoggedUser(data));
-        closeModal();
-        console.log(data);
+        setValidateMode(false);
       } catch (e) {
         console.log(e);
       }
